@@ -11,17 +11,18 @@ if len(sys.argv) < 2:
 username = sys.argv[1]
 
 keyword = ''
-while keyword.strip() == '':    
+while keyword.strip() == '':  
     keyword = getpass.getpass('Please enter your password:')
 
-keytool = Keytool()
+keytool = Keytool(keyword)
 shelfFile = shelve.open('data')
 keytool.loadKeyFromFile('keyfile')
-keytool.loadKey(keyword)
+keytool.loadKey()
 
 #try:
 shelfFile[username] = keytool.encrypt(keyword, True)
+print(shelfFile[username])
 shelfFile.close()
 print('Password has been saved successfully.')
 #except:
- #   print('Failed to save password')
+    #print('Failed to save password')

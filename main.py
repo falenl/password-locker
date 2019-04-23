@@ -6,10 +6,9 @@ from keytool import *
 user = getpass.getuser()
 pwd = getpass.getpass("User Name : %s\nPassword:" % user)
 
-keytool = Keytool()
+keytool = Keytool(pwd)
 shelfFile = shelve.open('data')
 
-keytool.loadKey(pwd)
 keytool.loadKeyFromFile('keyfile')
 
 def printMenu():
@@ -32,9 +31,11 @@ def searchKeyword(criteria):
 
 def matchPassword():
     if user in shelfFile:
-        keyword = keytool.decrypt(shelfFile[user], True)
-        print(keyword)
-        return pwd == keyword
+        try:
+            keyword = keytool.decrypt(shelfFile[user], True)
+            return pwd == keyword
+        except:
+            print('Username and password doesn\'t match')        
     else:
         print('Username and password doesn\'t match')
         return False
@@ -66,8 +67,10 @@ while True:
         searchCriteria = input()
         #search
         searchKeyword(searchCriteria)
-        print(''.center(30, "="))
+        print(''.center(30, "="))        
     elif userInput == "3":
         break
+
+    print('\n\n')
 
 shelfFile.close()
