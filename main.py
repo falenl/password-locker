@@ -2,56 +2,59 @@
 
 import sys, getpass, shelve, pyperclip
 from keytool import *
+from user import *
 
-user = getpass.getuser()
-pwd = getpass.getpass("User Name : %s\nPassword:" % user)
+userName = getpass.getuser()
+shelfFile = shelve.open('data/data')
 
-keytool = Keytool(pwd)
-shelfFile = shelve.open('data')
-
-keytool.loadKeyFromFile('keyfile')
+passed = False
+while not passed:
+    pwd = getpass.getpass("User Name : %s\nPassword:" % userName)
+    keytool = Keytool(pwd)
+    keytool.loadKeyFromFile('data/keyfile')
+    user = User(userName, shelfFile, keytool)
+    passed = user.matchPassword(pwd)
 
 def printMenu():
     print('Menu'.center(30, "="))
-    print('1. Enter/Update keyword')
-    print('2. Search keyword')
-    print('3. Exit')
+    print('1. Enter/Update Account')
+    print('2. Search Account')
+    print('3. Account List')
+    print('4. Exit')
     print(''.center(30, "="))
     print('Choose menu: ', end='')
 
 def updateKeyword(keytext, username, keyword):
     shelfFile[keytext] = [keytool.encrypt(username), keytool.encrypt(keyword)]; 
 
+def find(criteria):
+    if criteria in shelfFile:
+        return True
+    else:
+        return False
+
 def searchKeyword(criteria):
     if criteria in shelfFile:
         pyperclip.copy(keytool.decrypt(shelfFile[criteria][1]))
-        print('Username is %s and password has been copied' % keytool.decrypt(shelfFile[criteria][0]))
+        print('Username is "%s" and password has been copied' % keytool.decrypt(shelfFile[criteria][0]))
     else:
         print('There is no account named ' + criteria)
-
-def matchPassword():
-    if user in shelfFile:
-        try:
-            keyword = keytool.decrypt(shelfFile[user], True)
-            return pwd == keyword
-        except:
-            print('Username and password doesn\'t match')        
-    else:
-        print('Username and password doesn\'t match')
-        return False
-
-if not matchPassword():
-    sys.exit()
-
+        
 while True:
     printMenu()
     userInput = input()
-    if userInput == "1":
+    if userInput == "1":        
         print('Add/Update Account'.center(30, "="))
 
         #ask for key and password
         print('Enter Account Name: ', end='')
         keytext = input()
+        if find(keytext):
+            print('Account is already exist. Are you sure want to overwrite? (y/n)')
+            yesno = input()
+            if yesno.lower() == 'n':
+                continue
+        
         print('Enter Username: ', end='')
         username = input()
         print('Enter Password: ')
@@ -67,8 +70,16 @@ while True:
         searchCriteria = input()
         #search
         searchKeyword(searchCriteria)
-        print(''.center(30, "="))        
+        print(''.center(30, "="))
+        
     elif userInput == "3":
+        print('Account List'.center(30, "="))
+        for key in shelfFile:
+            if key != userName:
+                print(key)
+        print(''.center(30, "="))
+        
+    elif userInput == "4":
         break
 
     print('\n\n')
