@@ -14,21 +14,22 @@ class Keytool:
     def generateKey(self):
         print('Generating Key...')
         key = Fernet.generate_key()
-        print('A key has been generated: ' + key.decode())
+        #print('A key has been generated: ' + key.decode())
         return key
         
     def encrypt(self, strText, doubleSecure=False):
-        print('Encrypting text...')
+        #print('Encrypting text...')
+        self.loadKey(True)
         if doubleSecure:
             strText = self.password_suite.encrypt(strText.encode())
         else:
             strText = strText.encode()
         ciphered_text = self.fernet_suite.encrypt(strText)
-        print('Text encrypted.')
+        #print('Text encrypted.')
         return b64encode(self.salt + ciphered_text)
 
     def decrypt(self, encryptedText, doubleSecure=False):
-        print('Decrypting text...')
+        #print('Decrypting text...')
         # Split out the salt from the ciphertext
         ciphertext = b64decode(encryptedText)
         self.salt = ciphertext[:16]
@@ -38,14 +39,14 @@ class Keytool:
         unciphered_text = self.fernet_suite.decrypt(ciphertext)
         if doubleSecure:
             unciphered_text = self.password_suite.decrypt(unciphered_text)
-        print('Text decrypted.')
+        #print('Text decrypted.')
         return unciphered_text.decode()
 
     def generateSalt(self, size=8, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for x in range(size))
 
-    def loadKey(self):
-        if (self.salt == ''):
+    def loadKey(self, genSalt=False):
+        if (self.salt == '' or genSalt):
             self.salt = self.generateSalt(16).encode()
         
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
